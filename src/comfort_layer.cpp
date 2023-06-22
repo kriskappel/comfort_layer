@@ -622,8 +622,8 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
     cv::Vec4i line1 = pair.first;
     cv::Vec4i line2 = pair.second;
 
-    std::cout << "Line 1: (" << line1[0] << ", " << line1[1] << ") - (" << line1[2] << ", " << line1[3] << ")" << std::endl;
-    std::cout << "Line 2: (" << line2[0] << ", " << line2[1] << ") - (" << line2[2] << ", " << line2[3] << ")" << std::endl;
+    // std::cout << "Line 1: (" << line1[0] << ", " << line1[1] << ") - (" << line1[2] << ", " << line1[3] << ")" << std::endl;
+    // std::cout << "Line 2: (" << line2[0] << ", " << line2[1] << ") - (" << line2[2] << ", " << line2[3] << ")" << std::endl;
     
     costmap_2d::MapLocation maploc;
 
