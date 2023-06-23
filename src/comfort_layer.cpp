@@ -520,14 +520,16 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
   // // }
   // // first_run_ = 0;
   parallelPairs = findParallelLines(costmap_,  min_i,  min_j,  max_i,  max_j);
+
+  std::vector<costmap_2d::MapLocation> polygon_cells;
   
   std::vector<costmap_2d::MapLocation> map_polygon;
 
-  for (const auto& pair : parallelPairs) 
+  if (!parallelPairs.empty())
   {
     // pair = parallelPairs[0];
-    cv::Vec4i line1 = pair.first;
-    cv::Vec4i line2 = pair.second;
+    cv::Vec4i line1 = parallelPairs[0].first;
+    cv::Vec4i line2 = parallelPairs[0].second;
 
     // std::cout << "Line 1: (" << line1[0] << ", " << line1[1] << ") - (" << line1[2] << ", " << line1[3] << ")" << std::endl;
     // std::cout << "Line 2: (" << line2[0] << ", " << line2[1] << ") - (" << line2[2] << ", " << line2[3] << ")" << std::endl;
@@ -538,25 +540,23 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
     maploc.y = line1[1] + min_j;  
     map_polygon.push_back(maploc);
 
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
 
     maploc.x = line1[2] + min_i;
     maploc.y = line1[3] + min_j;  
     map_polygon.push_back(maploc);
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
 
     maploc.x = line2[0] + min_i;
     maploc.y = line2[1] + min_j;  
     map_polygon.push_back(maploc);
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
 
     maploc.x = line2[2] + min_i;
     maploc.y = line2[3] + min_j;  
     map_polygon.push_back(maploc);
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
-
-
-    std::vector<costmap_2d::MapLocation> polygon_cells;
+    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    
 
     convexFillCells(map_polygon, polygon_cells);
 
@@ -616,60 +616,72 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
       break;
   }
 
-  for (const auto& pair : parallelPairs) 
+  if (!parallelPairs.empty())
   {
-    // pair = parallelPairs[0];
-    cv::Vec4i line1 = pair.first;
-    cv::Vec4i line2 = pair.second;
-
-    // std::cout << "Line 1: (" << line1[0] << ", " << line1[1] << ") - (" << line1[2] << ", " << line1[3] << ")" << std::endl;
-    // std::cout << "Line 2: (" << line2[0] << ", " << line2[1] << ") - (" << line2[2] << ", " << line2[3] << ")" << std::endl;
-    
-    costmap_2d::MapLocation maploc;
-
-    maploc.x = line1[0];
-    maploc.y = line1[1];  
-    map_polygon.push_back(maploc);
-
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
-
-    maploc.x = line1[2];
-    maploc.y = line1[3];  
-    map_polygon.push_back(maploc);
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
-
-    maploc.x = line2[0];
-    maploc.y = line2[1];  
-    map_polygon.push_back(maploc);
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
-
-    maploc.x = line2[2];
-    maploc.y = line2[3];  
-    map_polygon.push_back(maploc);
-    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
-
-
-    std::vector<costmap_2d::MapLocation> polygon_cells;
-
-    convexFillCells(map_polygon, polygon_cells);
-
     for (unsigned int i = 0; i < polygon_cells.size(); ++i)
     {
       unsigned int index = getIndex(polygon_cells[i].x, polygon_cells[i].y);
 
-      double pos_coor = positionInCorridor(cv::Point(line1[0], line1[1]), cv::Point(line1[2], line1[3]), 
-        cv::Point(line2[0], line2[1]), cv::Point(line2[2], line2[3]), polygon_cells[i].x, polygon_cells[i].y);  
-
-      double comfort = calculateComfortFunction(pos_coor);
-
       if (costmap_[index] != LETHAL_OBSTACLE)
-        // costmap_[index] = mapComfortToCost(comfort);
         costmap_[index] = 0; 
-      // ROS_INFO("comfort %d ", mapComfortToCost(comfort));
     }
-    // map_polygon.clear();
-
   }
+
+
+  // for (const auto& pair : parallelPairs) 
+  // {
+  //   // pair = parallelPairs[0];
+  //   cv::Vec4i line1 = pair.first;
+  //   cv::Vec4i line2 = pair.second;
+
+  //   // std::cout << "Line 1: (" << line1[0] << ", " << line1[1] << ") - (" << line1[2] << ", " << line1[3] << ")" << std::endl;
+  //   // std::cout << "Line 2: (" << line2[0] << ", " << line2[1] << ") - (" << line2[2] << ", " << line2[3] << ")" << std::endl;
+    
+  //   costmap_2d::MapLocation maploc;
+
+  //   maploc.x = line1[0] + min_i;
+  //   maploc.y = line1[1] + min_j;  
+  //   map_polygon.push_back(maploc);
+
+  //   // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+
+  //   maploc.x = line1[2] + min_i;
+  //   maploc.y = line1[3] + min_j;  
+  //   map_polygon.push_back(maploc);
+  //   // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+
+  //   maploc.x = line2[0] + min_i;
+  //   maploc.y = line2[1] + min_j;  
+  //   map_polygon.push_back(maploc);
+  //   // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+
+  //   maploc.x = line2[2] + min_i;
+  //   maploc.y = line2[3] + min_j;  
+  //   map_polygon.push_back(maploc);
+  //   // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+
+
+  //   std::vector<costmap_2d::MapLocation> polygon_cells;
+
+  //   convexFillCells(map_polygon, polygon_cells);
+
+  //   for (unsigned int i = 0; i < polygon_cells.size(); ++i)
+  //   {
+  //     unsigned int index = getIndex(polygon_cells[i].x, polygon_cells[i].y);
+
+  //     double pos_coor = positionInCorridor(cv::Point(line1[0], line1[1]), cv::Point(line1[2], line1[3]), 
+  //       cv::Point(line2[0], line2[1]), cv::Point(line2[2], line2[3]), polygon_cells[i].x, polygon_cells[i].y);  
+
+  //     double comfort = calculateComfortFunction(pos_coor);
+
+  //     if (costmap_[index] != LETHAL_OBSTACLE)
+  //       // costmap_[index] = mapComfortToCost(comfort);
+  //       costmap_[index] = 0; 
+  //     // ROS_INFO("comfort %d ", mapComfortToCost(comfort));
+  //   }
+  //   // map_polygon.clear();
+
+  // }
 }
 
 void ComfortLayer::addStaticObservation(costmap_2d::Observation& obs, bool marking, bool clearing)
@@ -926,7 +938,7 @@ std::vector<cv::Vec4i> ComfortLayer::sortLinesByLength(const std::vector<cv::Vec
 
 // Function to find parallel lines in a binary image
 std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(unsigned char* data, int min_i, int min_j, int max_i, int max_j) {
-
+    ROS_INFO("findParallelLines func");
     int height = (max_j - min_j);
     int width = (max_i - min_i);
     unsigned char * costmap_aux = new unsigned char[height * width];
@@ -947,8 +959,8 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
 
     // // // Apply Hough Transform to detect lines
     std::vector<cv::Vec4i> lines;
-    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 5, 10, 3);
-
+    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 10, 10, 3);
+    std::cout<<lines.size();
     lines = sortLinesByLength(lines);
 
     // // Iterate over the lines to find parallel pairs
@@ -956,7 +968,7 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
     double minDistanceThreshold = 6.0; // Set your desired threshold value here
     double maxDistanceThreshold = 50.0;
     std::vector<std::pair<cv::Vec4i, cv::Vec4i>> parallelPairs;
-    // std::cout<<lines.size();
+    
     for (size_t i = 0; i < lines.size(); i++) {
         cv::Point pt1_1 = cv::Point(lines[i][0], lines[i][1]);
         cv::Point pt2_1 = cv::Point(lines[i][2], lines[i][3]);
@@ -991,6 +1003,9 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
                     lines[j][3] = height - 1;
 
                     parallelPairs.emplace_back(lines[i], lines[j]);
+
+                    // delete costmap_aux;
+                    
                     return parallelPairs;
                   }
                 }
@@ -1006,7 +1021,7 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
 
                     parallelPairs.emplace_back(lines[i], lines[j]);
 
-                    delete costmap_aux;
+                    // delete costmap_aux;
 
                     return parallelPairs;
                   }
@@ -1024,7 +1039,7 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
     }
     // std::cout<<"-----";
 
-    delete costmap_aux;
+    // delete costmap_aux;
 
     return parallelPairs;
 }
