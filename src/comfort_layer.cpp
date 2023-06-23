@@ -438,7 +438,7 @@ void ComfortLayer::updateBounds(double robot_x, double robot_y, double robot_yaw
 
   // if (*max_y < 1000)
   // {
-  //   // ROS_INFO("flag");
+  //   
   //   first_run_ = 1;
   // }
   updateFootprint(robot_x, robot_y, robot_yaw, min_x, min_y, max_x, max_y);
