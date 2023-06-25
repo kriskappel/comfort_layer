@@ -915,9 +915,9 @@ unsigned char ComfortLayer::mapComfortToCost(double value)
 
   // Calculate the corresponding int value
   // ROS_INFO("%f ", (1 - value / 0.605) * 254);
-  unsigned char result = static_cast<unsigned char>((1 - value / 0.605) * 600);
-  if (result > 254)
-    result = 254;
+  unsigned char result = static_cast<unsigned char>((1 - value / 0.605) * 252);
+  // if (result > 254)
+  //   result = 254;
   return result;
 }
 
