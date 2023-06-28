@@ -946,16 +946,21 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
     int l = 0;
     int k = 0;
     unsigned char * costmap_aux = new unsigned char[height * width];
-    for (int j = min_j; j < max_j; j++, l++) 
+    for (int j = min_j, l = 0; j < max_j; j++) 
     {
       
-      for (int i = min_i; i < max_i; i++, k++) 
+      for (int i = min_i, k = 0; i < max_i; i++) 
       {
         int index = getIndex(i, j);
+        // ROS_INFO("%d, %d, %d", i, j, index);
         int index_aux = getIndex(k,l);
+        // ROS_INFO("%d, %d, %d", k, l, index_aux);
         costmap_aux[index_aux] = costmap_[index];
       }
+      l=0;
+      k=0;
     }
+    ROS_INFO("testing");
     // Convert data to binary image
     cv::Mat binaryImage(height, width, CV_8UC1, costmap_aux);
     cv::Mat thresholdImage;
@@ -964,7 +969,7 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
 
     // // // Apply Hough Transform to detect lines
     std::vector<cv::Vec4i> lines;
-    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 10, 10, 3);
+    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 150, 100, 1);
     std::cout<<lines.size();
     lines = sortLinesByLength(lines);
 
