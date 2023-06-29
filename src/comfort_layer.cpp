@@ -501,24 +501,24 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
   // //   // ROS_INFO("%d %d %d %d", min_i, min_j, max_i, max_j);
   // // //   ROS_INFO("Teste");
   // std::cout<<"\ncostmap before comfort\n";
-  // for (int j = min_j; j < max_j; j++) 
-  // {
-  //   for (int i = min_i; i < max_i; i++) 
-  //   {
-  //     unsigned int index = getIndex(i, j);
-  //     // inline unsigned int getIndex(unsigned int mx, unsigned int my) const
-  //     // {
-  //     //   return my * size_x_ + mx;
-  //     // }
-  //     // MyFile << costmap_[index];
-  //     // MyFile << " ";
-  //     // if (costmap_[index] == LETHAL_OBSTACLE)
-  //     // ROS_INFO("%d %d %d", i, j, costmap_[index]);  
-  //     std::cout << (int)master_array[index] << " ";
-  //   }
-  //   // MyFile << "\n";
-  //   std::cout<<"\n";
-  // }
+  for (int j = min_j; j < max_j; j++) 
+  {
+    for (int i = min_i; i < max_i; i++) 
+    {
+      unsigned int index = getIndex(i, j);
+      // inline unsigned int getIndex(unsigned int mx, unsigned int my) const
+      // {
+      //   return my * size_x_ + mx;
+      // }
+      // MyFile << costmap_[index];
+      // MyFile << " ";
+      // if (costmap_[index] == LETHAL_OBSTACLE)
+      // ROS_INFO("%d %d %d", i, j, costmap_[index]);  
+      std::cout << (int)costmap_[index] << " ";
+    }
+    // MyFile << "\n";
+    std::cout<<"\n";
+  }
   // // }
   // // first_run_ = 0;
   parallelPairs = findParallelLines(costmap_,  min_i,  min_j,  max_i,  max_j);
@@ -969,7 +969,7 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
 
     // // // Apply Hough Transform to detect lines
     std::vector<cv::Vec4i> lines;
-    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 150, 100, 1);
+    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 15, 10, 3);
     std::cout<<lines.size();
     lines = sortLinesByLength(lines);
 
