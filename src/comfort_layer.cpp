@@ -490,7 +490,7 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
   
   // ROS_INFO("%d %d %d %d", min_i, min_j, max_i, max_j);
 
-  // unsigned char * master_array = master_grid.getCharMap();
+  unsigned char * master_array = master_grid.getCharMap();
 
   std::vector<std::pair<cv::Vec4i, cv::Vec4i>> parallelPairs;
   // // if (first_run_ == 0)
@@ -599,7 +599,7 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
   //     // MyFile << " ";
   //     // if (costmap_[index] == LETHAL_OBSTACLE)
   //     // ROS_INFO("%d %d %d", i, j, costmap_[index]);  
-  //     std::cout << (int)costmap_[index] << " ";
+  //     std::cout << (int)master_array[index] << " ";
   //   }
   //   // MyFile << "\n";
   //   std::cout<<"\n";
