@@ -501,28 +501,34 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
   // //   // ROS_INFO("%d %d %d %d", min_i, min_j, max_i, max_j);
   // // //   ROS_INFO("Teste");
   // std::cout<<"\ncostmap before comfort\n";
-  for (int j = min_j; j < max_j; j++) 
-  {
-    for (int i = min_i; i < max_i; i++) 
-    {
-      unsigned int index = getIndex(i, j);
-      // inline unsigned int getIndex(unsigned int mx, unsigned int my) const
-      // {
-      //   return my * size_x_ + mx;
-      // }
-      // MyFile << costmap_[index];
-      // MyFile << " ";
-      // if (costmap_[index] == LETHAL_OBSTACLE)
-      // ROS_INFO("%d %d %d", i, j, costmap_[index]);  
-      std::cout << (int)costmap_[index] << " ";
-    }
-    // MyFile << "\n";
-    std::cout<<"\n";
-  }
-  // // }
+  // for(int j = min_j; j < max_j; j++) 
+  // {
+  //   for (int i = min_i; i < max_i; i++) 
+  //   { 
+  //     unsigned int index = getIndex(i, j);
+  //     // inline unsigned int getIndex(unsigned int mx, unsigned int my) const
+  //     // {
+  //     //   return my * size_x_ + mx;
+  //     // }
+  //     // MyFile << costmap_[index];
+  //     // MyFile << " ";
+      
+  //     // ROS_INFO("%d %d %d", i, j, costmap_[index]);  
+  //     // std::cout << (int)master_array[index] << " ";
+  //   }// 
+  //   /// / MyFile << "\n";
+  //   std::cout<<"\n";
+  // }
+ //  // // }
   // // first_run_ = 0;
-  parallelPairs = findParallelLines(costmap_,  min_i,  min_j,  max_i,  max_j);
+  translate_array_ = new unsigned int[(max_i - min_i) * (max_j - min_j)];
+  parallelPairs = findParallelLines(master_array,  min_i,  min_j,  max_i,  max_j);
 
+  // for (int i = 0; i < (max_i - min_i) * (max_j - min_j); ++i)
+  // {
+  //   std::cout<<translate_array_[i]<< " ";
+  // }
+  // std::cout<<std::endl;
   std::vector<costmap_2d::MapLocation> polygon_cells;
   
   std::vector<costmap_2d::MapLocation> map_polygon;
@@ -542,22 +548,22 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
     maploc.y = line1[1] + min_j;  
     map_polygon.push_back(maploc);
 
-    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
 
     maploc.x = line1[2] + min_i;
     maploc.y = line1[3] + min_j;  
     map_polygon.push_back(maploc);
-    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
 
     maploc.x = line2[0] + min_i;
     maploc.y = line2[1] + min_j;  
     map_polygon.push_back(maploc);
-    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
 
     maploc.x = line2[2] + min_i;
     maploc.y = line2[3] + min_j;  
     map_polygon.push_back(maploc);
-    std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
+    // std::cout << "maploc " <<maploc.x<< " " <<maploc.y<<"\n";
     
 
     convexFillCells(map_polygon, polygon_cells);
@@ -566,15 +572,17 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
     {
       unsigned int index = getIndex(polygon_cells[i].x, polygon_cells[i].y);
 
-      double pos_coor = positionInCorridor(cv::Point(line1[0], line1[1]), cv::Point(line1[2], line1[3]), 
-        cv::Point(line2[0], line2[1]), cv::Point(line2[2], line2[3]), polygon_cells[i].x, polygon_cells[i].y);  
+      double pos_coor = positionInCorridor(cv::Point(line1[0] + min_i, line1[1]+ min_j), cv::Point(line1[2]+ min_i, line1[3]+ min_j), 
+        cv::Point(line2[0]+ min_i, line2[1]+ min_j), cv::Point(line2[2]+ min_i, line2[3]+ min_j)  , polygon_cells[i].x, polygon_cells[i].y);  
 
       double comfort = calculateComfortFunction(pos_coor);
 
-      if (costmap_[index] != LETHAL_OBSTACLE)
+      if (master_array[index] < LETHAL_OBSTACLE)
       {
-        costmap_[index] = mapComfortToCost(comfort);
-        // ROS_INFO("comfort %d ", mapComfortToCost(comfort));
+        master_array[index] = mapComfortToCost(comfort);
+        // ROS_INFO("comfort func %d positionInCorridor %f comfort %f", mapComfortToCost(comfort), pos_coor, comfort);
+        // ROS_INFO("comfort func %d positionInCorridor %f comfort %f", mapComfortToCost(comfort), pos_coor, comfort);
+        // std::cout <<(int)master_array[index]<< " ";
       }
       // costmap_[index] = 200;
       // ;
@@ -606,28 +614,28 @@ void ComfortLayer::updateCosts(costmap_2d::Costmap2D& master_grid, int min_i, in
   // }
 
   
-  switch (combination_method_)
-  {
-    case 0:  // Overwrite
-      updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
-      break;
-    case 1:  // Maximum
-      updateWithMax(master_grid, min_i, min_j, max_i, max_j);
-      break;
-    default:  // Nothing
-      break;
-  }
+  // switch (combination_method_)
+  // {
+  //   case 0:  // Overwrite
+  //     updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
+  //     break;
+  //   case 1:  // Maximum
+  //     updateWithMax(master_grid, min_i, min_j, max_i, max_j);
+  //     break;
+  //   default:  // Nothing
+  //     break;
+  // }
 
-  if (!parallelPairs.empty())
-  {
-    for (unsigned int i = 0; i < polygon_cells.size(); ++i)
-    {
-      unsigned int index = getIndex(polygon_cells[i].x, polygon_cells[i].y);
+  // if (!parallelPairs.empty())
+  // {
+  //   for (unsigned int i = 0; i < polygon_cells.size(); ++i)
+  //   {
+  //     unsigned int index = getIndex(polygon_cells[i].x, polygon_cells[i].y);
 
-      if (costmap_[index] != LETHAL_OBSTACLE)
-        costmap_[index] = 0; 
-    }
-  }
+  //     if (costmap_[index] != LETHAL_OBSTACLE)
+  //       costmap_[index] = 0; 
+  //   }
+  // }
 
 
   // for (const auto& pair : parallelPairs) 
@@ -917,7 +925,7 @@ unsigned char ComfortLayer::mapComfortToCost(double value)
 
   // Calculate the corresponding int value
   // ROS_INFO("%f ", (1 - value / 0.605) * 254);
-  unsigned char result = static_cast<unsigned char>((1 - value / 0.605) * 252);
+  unsigned char result = static_cast<unsigned char>((1 - value / 0.605) * 253);
   // if (result > 254)
   //   result = 254;
   return result;
@@ -940,43 +948,67 @@ std::vector<cv::Vec4i> ComfortLayer::sortLinesByLength(const std::vector<cv::Vec
 
 // Function to find parallel lines in a binary image
 std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(unsigned char* data, int min_i, int min_j, int max_i, int max_j) {
-    ROS_INFO("findParallelLines func");
+    // ROS_INFO("findParallelLines func");
     int height = (max_j - min_j);
     int width = (max_i - min_i);
     int l = 0;
     int k = 0;
+    // std::cout<< sizeof(new unsigned char) << " " << sizeof(unsigned char[height * width]);
     unsigned char * costmap_aux = new unsigned char[height * width];
-    for (int j = min_j, l = 0; j < max_j; j++) 
+
+    
+
+    for (int j = min_j; j < max_j; j++, l++) 
     {
       
-      for (int i = min_i, k = 0; i < max_i; i++) 
+      for (int i = min_i; i < max_i; i++, k++) 
       {
         int index = getIndex(i, j);
-        // ROS_INFO("%d, %d, %d", i, j, index);
-        int index_aux = getIndex(k,l);
-        // ROS_INFO("%d, %d, %d", k, l, index_aux);
-        costmap_aux[index_aux] = costmap_[index];
+        
+        int index_aux = k+l * width;
+
+        translate_array_[index_aux] = index;
+
+        // if(height < 300)
+        // {
+        //   std::cout<<i<<" "<< j<<" "<< index <<std::endl;
+        //   std::cout<<k<<" "<< l<<" "<< index_aux <<std::endl;
+        // }
+        if(data[index] != LETHAL_OBSTACLE)
+          costmap_aux[index_aux] = 0;
+        else
+          costmap_aux[index_aux] = 255;
+
+        // ROS_INFO("%d", costmap_aux[index_aux]);
+        // std::cout << (int)costmap_aux[index_aux] << " ";
+
       }
-      l=0;
+      // std::cout<<std::endl;
+      // l=0;
       k=0;
-    }
-    ROS_INFO("testing");
+    } //TODO Preciso achar um jeito de 
+    // ROS_INFO("testing");
     // Convert data to binary image
     cv::Mat binaryImage(height, width, CV_8UC1, costmap_aux);
-    cv::Mat thresholdImage;
-    //cv::threshold(binaryImage, thresholdImage, 0, 255, cv::THRESH_BINARY);
-    ROS_INFO("findParallelLines %d %d %d %d", min_i, min_j, max_i, max_j);
+    
+    // ROS_INFO("testing2");
+    // cv::Mat thresholdImage;
+    // cv::threshold(binaryImage, thresholdImage, 0, 255, cv::THRESH_BINARY);
+    // std::cout << binaryImage << std::endl << std::endl;
+    // ROS_INFO("findParallelLines %d %d %d %d", min_i, min_j, max_i, max_j);
 
     // // // Apply Hough Transform to detect lines
     std::vector<cv::Vec4i> lines;
-    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 15, 10, 3);
-    std::cout<<lines.size();
+    // cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 25, 18, 2);
+    cv::HoughLinesP(binaryImage, lines, 1, CV_PI / 180, 25, 15, 2);
+    // std::cout<<lines.size();  
     lines = sortLinesByLength(lines);
 
     // // Iterate over the lines to find parallel pairs
     double angleThreshold = CV_PI / 36; // 5 degrees threshold for diagonal lines
-    double minDistanceThreshold = 6.0; // Set your desired threshold value here
+    double minDistanceThreshold = 3.0; // Set your desired threshold value here
     double maxDistanceThreshold = 50.0;
+    double inclinationThreshold = 6.0;
     std::vector<std::pair<cv::Vec4i, cv::Vec4i>> parallelPairs;
     
     for (size_t i = 0; i < lines.size(); i++) {
@@ -991,52 +1023,60 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
             double angle1 = std::atan2(pt2_1.y - pt1_1.y, pt2_1.x - pt1_1.x);
             double angle2 = std::atan2(pt2_2.y - pt1_2.y, pt2_2.x - pt1_2.x);
             double angleDiff = std::abs(angle1 - angle2);
+
+            int diff1x = std::abs(pt2_1.x - pt1_1.x);
+            int diff1y = std::abs(pt2_1.y - pt1_1.y);
+            int diff2x = std::abs(pt2_2.x - pt1_2.x);
+            int diff2y = std::abs(pt2_2.y - pt1_2.y);
             // ROS_INFO("%f", angleDiff);
 
-            // if (angleDiff > angleThreshold && angleDiff < (CV_PI - angleThreshold)) {
-            if (angleDiff < angleThreshold && angleDiff > -1 * angleThreshold) {
-                
-                // Calculate the distance between the parallel lines
-                double distance = calculateDistancePointPoint((pt1_1 + pt2_1) * 0.5, (pt1_2 + pt2_2) * 0.5);
-                
+            if((diff1x < inclinationThreshold  && diff2x < inclinationThreshold ) || (diff1y < inclinationThreshold && diff2y < inclinationThreshold ))
+            {
 
-                // Check if the distance is within the threshold
+              // if (angleDiff > angleThreshold && angleDiff < (CV_PI - angleThreshold)) {
+              if (angleDiff < angleThreshold && angleDiff > -1 * angleThreshold) {
+                  
+                  // Calculate the distance between the parallel lines
+                  double distance = calculateDistancePointPoint((pt1_1 + pt2_1) * 0.5, (pt1_2 + pt2_2) * 0.5);
+                  
 
-                if(std::abs(pt1_1.x - pt2_1.x) < std::abs(pt1_1.y - pt2_1.y))
-                {
-                  if(std::abs(pt1_1.x - pt1_2.x) < maxDistanceThreshold && std::abs(pt1_1.x - pt1_2.x) > minDistanceThreshold)
+                  // Check if the distance is within the threshold
+
+                  if(std::abs(pt1_1.x - pt2_1.x) < std::abs(pt1_1.y - pt2_1.y))
                   {
-                    lines[i][1] = 0;
-                    lines[i][3] = height - 1;
+                    if(std::abs(pt1_1.x - pt1_2.x) < maxDistanceThreshold && std::abs(pt1_1.x - pt1_2.x) > minDistanceThreshold)
+                    {
+                      lines[i][1] = 0;
+                      lines[i][3] = height - 1;
 
-                    lines[j][1] = 0;
-                    lines[j][3] = height - 1;
+                      lines[j][1] = 0;
+                      lines[j][3] = height - 1;
 
-                    parallelPairs.emplace_back(lines[i], lines[j]);
-                    ROS_INFO("%f", distance);
-                    // delete costmap_aux;
-                    
-                    return parallelPairs;
+                      parallelPairs.emplace_back(lines[i], lines[j]);
+                      // ROS_INFO("distance %f \n", distance);
+                      // delete costmap_aux;
+                      
+                      return parallelPairs;
+                    }
                   }
-                }
-                else
-                {
-                  if(std::abs(pt1_1.y - pt1_2.y) < maxDistanceThreshold && std::abs(pt1_1.y - pt1_2.y) > minDistanceThreshold)
+                  else
                   {
-                    lines[i][0] = 0;
-                    lines[i][2] = width - 1;
+                    if(std::abs(pt1_1.y - pt1_2.y) < maxDistanceThreshold && std::abs(pt1_1.y - pt1_2.y) > minDistanceThreshold)
+                    {
+                      lines[i][0] = 0;
+                      lines[i][2] = width - 1;
 
-                    lines[j][0] = 0;
-                    lines[j][2] = width - 1;
+                      lines[j][0] = 0;
+                      lines[j][2] = width - 1;
 
-                    parallelPairs.emplace_back(lines[i], lines[j]);
-                    ROS_INFO("%f", distance);
-                    // delete costmap_aux;
+                      parallelPairs.emplace_back(lines[i], lines[j]);
+                      // ROS_INFO("distance %f \n", distance);
+                      // delete costmap_aux;
 
-                    return parallelPairs;
+                      return parallelPairs;
+                    }
                   }
-                }
-
+              }
                 // if(std::abs(pt1_1.x - pt1_2.x) < maxDistanceThreshold && std::abs(pt1_1.x - pt1_2.x) > minDistanceThreshold
                 //   && std::abs(pt1_1.y - pt1_2.y) < maxDistanceThreshold && std::abs(pt1_1.y - pt1_2.y) > minDistanceThreshold)
                 // {
@@ -1053,6 +1093,10 @@ std::vector<std::pair<cv::Vec4i, cv::Vec4i>> ComfortLayer::findParallelLines(uns
 
     return parallelPairs;
 }
+
+
+
+
 
 
 }  // namespace comfort_layer

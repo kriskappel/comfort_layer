@@ -197,6 +197,8 @@ protected:
 
   std::string costmap_values_;
 
+  unsigned int * translate_array_;
+
 
 private:
   void reconfigureCB(costmap_2d::ObstaclePluginConfig &config, uint32_t level);
